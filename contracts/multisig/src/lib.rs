@@ -85,6 +85,11 @@ impl MultisigContract {
         assert!(amount > 0, "amount must be positive");
         require_owner(&env, &proposer);
         proposer.require_auth();
+        // Prevent proposing to zero address by checking to != contract itself
+        assert!(
+            to != env.current_contract_address(),
+            "cannot propose to self"
+        );
         let id: u64 = env.storage().instance().get(&DataKey::NextId).unwrap();
         let proposal = Proposal {
             id,

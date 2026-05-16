@@ -31,10 +31,16 @@ enum DataKey {
 }
 
 fn get_config(env: &Env) -> EscrowConfig {
+    env.storage()
+        .instance()
+        .extend_ttl(518400, 518400);
     env.storage().instance().get(&DataKey::Config).unwrap()
 }
 
 fn get_state(env: &Env) -> EscrowState {
+    env.storage()
+        .instance()
+        .extend_ttl(518400, 518400);
     env.storage().instance().get(&DataKey::State).unwrap()
 }
 

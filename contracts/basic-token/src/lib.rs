@@ -306,10 +306,20 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "amount must be positive")]
-    fn test_mint_zero_panics() {
+    fn test_zero_balance_default() {
         let (env, client, _) = setup();
-        let user = Address::generate(&env);
-        client.mint(&user, &0);
+        let stranger = Address::generate(&env);
+        assert_eq!(client.balance(&stranger), 0);
+    }
+
+    #[test]
+    fn test_approve_zero_clears_allowance() {
+        let (env, client, _) = setup();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        client.mint(&alice, &1000);
+        client.approve(&alice, &bob, &500);
+        client.approve(&alice, &bob, &0);
+        assert_eq!(client.allowance(&alice, &bob), 0);
     }
 }

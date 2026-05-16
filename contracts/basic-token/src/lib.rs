@@ -110,6 +110,27 @@ impl TokenContract {
             .publish((symbol_short!("burn"),), (from, amount));
     }
 
+    pub fn burn_from(env: Env, spender: Address, from: Address, amount: i128) {
+        assert!(amount > 0, "amount must be positive");
+        spender.require_auth();
+        let allowance = get_allowance(&env, &from, &spender);
+        assert!(allowance >= amount, "insufficient allowance");
+        let balance = get_balance(&env, &from);
+        assert!(balance >= amount, "insufficient balance");
+        set_allowance(&env, &from, &spender, allowance - amount);
+        set_balance(&env, &from, balance - amount);
+        let supply: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::TotalSupply)
+            .unwrap();
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalSupply, &(supply - amount));
+        env.events()
+            .publish((symbol_short!("burn_from"),), (spender, from, amount));
+    }
+
     pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
         assert!(amount > 0, "amount must be positive");
         from.require_auth();
@@ -303,6 +324,19 @@ mod tests {
         // new admin can mint
         client.mint(&new_admin, &100);
         assert_eq!(client.balance(&new_admin), 100);
+    }
+
+    #[test]
+    fn test_burn_from() {
+        let (env, client, _) = setup();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        client.mint(&alice, &1000);
+        client.approve(&alice, &bob, &400);
+        client.burn_from(&bob, &alice, &300);
+        assert_eq!(client.balance(&alice), 700);
+        assert_eq!(client.total_supply(), 700);
+        assert_eq!(client.allowance(&alice, &bob), 100);
     }
 
     #[test]

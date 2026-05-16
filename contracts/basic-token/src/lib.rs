@@ -16,11 +16,18 @@ fn get_admin(env: &Env) -> Address {
     env.storage().instance().get(&DataKey::Admin).unwrap()
 }
 
+const BALANCE_BUMP_AMOUNT: u32 = 518400; // ~30 days in ledgers
+const BALANCE_LIFETIME_THRESHOLD: u32 = 259200; // ~15 days
+
 fn get_balance(env: &Env, addr: &Address) -> i128 {
-    env.storage()
-        .persistent()
-        .get(&DataKey::Balance(addr.clone()))
-        .unwrap_or(0)
+    let key = DataKey::Balance(addr.clone());
+    let val = env.storage().persistent().get(&key).unwrap_or(0);
+    if val != 0 {
+        env.storage()
+            .persistent()
+            .extend_ttl(&key, BALANCE_LIFETIME_THRESHOLD, BALANCE_BUMP_AMOUNT);
+    }
+    val
 }
 
 fn set_balance(env: &Env, addr: &Address, amount: i128) {

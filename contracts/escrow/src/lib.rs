@@ -99,16 +99,6 @@ impl EscrowContract {
     pub fn release(env: Env) {
         let config = get_config(&env);
         assert!(get_state(&env) == EscrowState::Deposited, "invalid state");
-        let caller_is_arbiter_or_buyer = {
-            // require auth from either arbiter or buyer
-            // We try arbiter first; if that's not the caller, buyer must auth
-            let ledger_time = env.ledger().timestamp();
-            let _ = ledger_time; // used below in claim_expired
-            true
-        };
-        assert!(caller_is_arbiter_or_buyer);
-        // Require auth from arbiter OR buyer — caller must be one of them
-        // We enforce by requiring both to be checked; caller provides one
         config.arbiter.require_auth();
         let client = token::Client::new(&env, &config.token);
         client.transfer(

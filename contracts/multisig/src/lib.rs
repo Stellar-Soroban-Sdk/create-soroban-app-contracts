@@ -358,4 +358,20 @@ mod tests {
         let (_, client, owner1, _, _, _, _) = setup_3of2();
         client.change_threshold(&owner1, &10_u32);
     }
+
+    #[test]
+    #[should_panic(expected = "already an owner")]
+    fn test_add_duplicate_owner_panics() {
+        let (_, client, owner1, owner2, _, _, _) = setup_3of2();
+        client.add_owner(&owner1, &owner2);
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot remove last owner")]
+    fn test_remove_last_owner_panics() {
+        let (env, client, owner1, owner2, owner3, _, _) = setup_3of2();
+        client.remove_owner(&owner1, &owner2);
+        client.remove_owner(&owner1, &owner3);
+        client.remove_owner(&owner1, &owner1); // last one
+    }
 }

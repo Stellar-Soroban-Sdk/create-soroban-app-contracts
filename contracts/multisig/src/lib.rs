@@ -24,10 +24,12 @@ enum DataKey {
 }
 
 fn get_owners(env: &Env) -> Vec<Address> {
+    env.storage().instance().extend_ttl(518400, 518400);
     env.storage().instance().get(&DataKey::Owners).unwrap()
 }
 
 fn get_threshold(env: &Env) -> u32 {
+    env.storage().instance().extend_ttl(518400, 518400);
     env.storage().instance().get(&DataKey::Threshold).unwrap()
 }
 

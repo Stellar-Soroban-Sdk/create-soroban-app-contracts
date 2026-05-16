@@ -320,4 +320,23 @@ mod tests {
         let (_env, client, buyer, seller, arbiter, token_address) = setup();
         client.initialize(&buyer, &seller, &arbiter, &token_address, &100_i128, &9999_u64);
     }
+
+    #[test]
+    #[should_panic(expected = "invalid state")]
+    fn test_dispute_after_release_panics() {
+        let (_, client, _, _, _, _) = setup();
+        client.deposit();
+        client.release();
+        client.dispute();
+    }
+
+    #[test]
+    #[should_panic(expected = "amount must be positive")]
+    fn test_initialize_zero_amount_panics() {
+        let (env, client, buyer, seller, arbiter, token_address) = setup();
+        // re-deploy a fresh contract to test zero amount
+        let contract_id2 = env.register(EscrowContract, ());
+        let client2 = EscrowContractClient::new(&env, &contract_id2);
+        client2.initialize(&buyer, &seller, &arbiter, &token_address, &0_i128, &9999_u64);
+    }
 }

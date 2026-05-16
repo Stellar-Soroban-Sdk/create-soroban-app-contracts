@@ -44,9 +44,15 @@ fn get_allowance(env: &Env, from: &Address, spender: &Address) -> i128 {
 }
 
 fn set_allowance(env: &Env, from: &Address, spender: &Address, amount: i128) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::Allowance(from.clone(), spender.clone()), &amount);
+    let key = DataKey::Allowance(from.clone(), spender.clone());
+    if amount == 0 {
+        env.storage().persistent().remove(&key);
+    } else {
+        env.storage().persistent().set(&key, &amount);
+        env.storage()
+            .persistent()
+            .extend_ttl(&key, BALANCE_LIFETIME_THRESHOLD, BALANCE_BUMP_AMOUNT);
+    }
 }
 
 #[contract]
